@@ -2,7 +2,7 @@ import { useState } from 'react';
 import useTextSelection from '../hooks/useTextSelection';
 import { Copy, Share2 } from 'lucide-react';
 
-export function Demo() {
+export function TextAreaDemo() {
   const [text, setText] = useState(
     'Try selecting some text in this textarea! A tooltip will appear above your selection.\n\nThis demo showcases the useTextSelection hook in action.'
   );
@@ -12,7 +12,7 @@ export function Demo() {
   return (
     <section className="relative">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 font-serif">
-        Live Demo
+        Textarea Demo
       </h2>
       <div className="relative">
         <textarea
