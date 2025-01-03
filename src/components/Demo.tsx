@@ -10,7 +10,7 @@ export function Demo() {
   const selection = useTextSelection();
 
   return (
-    <section className="relative max-w-2xl mx-auto">
+    <section className="relative">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 font-serif">
         Live Demo
       </h2>
@@ -21,7 +21,6 @@ export function Demo() {
           className="w-full h-40 p-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none"
           placeholder="Try selecting some text..."
         />
-
         {selection.isSelected && selection.position && (
           <div
             className="fixed bg-white shadow-lg rounded-lg p-1.5 flex gap-1.5 transform -translate-y-full animate-fade-in"

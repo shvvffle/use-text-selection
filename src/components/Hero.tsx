@@ -6,7 +6,7 @@ export function Hero() {
           useTextSelection
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          A React hook for creating elegant text selection interactions, similar to Medium's selection experience.
+        A React hook for creating elegant text selection interactions in textareas and input fields
         </p>
       </div>
     </header>

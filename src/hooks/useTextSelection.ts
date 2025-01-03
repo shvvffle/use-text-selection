@@ -20,7 +20,7 @@ interface UseTextSelectionOptions {
   offsetTop?: number;
 }
 
-const useTextSelection = (options: UseTextSelectionOptions): TextSelection => {
+const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
   const [selection, setSelection] = useState<TextSelection>({
     selectedText: null,
     position: null,
