@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50px);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Custom font settings */
+@layer base {
+  html {
+    font-feature-settings: "liga" 1, "calt" 1;
+  }
+  
+  @font-face {
+    font-family: 'Inter';
+    src: url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  }
+}
