@@ -22,6 +22,7 @@ function MyComponent() {
       {selection.isSelected && selection.position && (
         <div
           style={{
+            position: 'absolute',
             top: selection.position.top,
             left: selection.position.left
           }}

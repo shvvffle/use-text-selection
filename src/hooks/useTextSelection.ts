@@ -115,8 +115,8 @@ const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
       }
 
       return {
-        left: left + window.scrollX - (options?.offsetLeft ?? 4),
-        top: top + window.scrollY - (options?.offsetTop ?? 8),
+        left: left + window.scrollX - (options?.offsetLeft ?? 10),
+        top: top + window.scrollY - (options?.offsetTop ?? 370),
       };
     },
     []

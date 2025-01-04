@@ -12,19 +12,22 @@ export function SelectionTooltip({ selection }: SelectionTooltipProps) {
   }
 
   return (
-    <div
-      className="fixed bg-white shadow-lg rounded-lg p-1.5 flex gap-1.5 transform -translate-y-full animate-fade-in"
-      style={{
-        top: `${selection.position.top}px`,
-        left: `${selection.position.left}px`,
-      }}
-    >
-      <button className="p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-        <Copy size={16} />
-      </button>
-      <button className="p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-        <Share2 size={16} />
-      </button>
+    <div className="flex items-center">
+      <div
+        className="bg-white shadow-lg rounded-lg p-1.5 flex gap-1.5 animate-fade-in"
+        style={{
+          position: 'absolute',
+          top: `${selection.position.top}px`,
+          left: `${selection.position.left}px`,
+        }}
+      >
+        <button className="p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+          <Copy size={16} />
+        </button>
+        <button className="p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+          <Share2 size={16} />
+        </button>
+      </div>
     </div>
   );
 }

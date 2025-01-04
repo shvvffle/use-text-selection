@@ -18,8 +18,8 @@ import { useTextSelection } from 'use-text-selection';
 
 function MyComponent() {
   const selection = useTextSelection({
-    offsetLeft: 4,  // Optional: Adjust horizontal offset
-    offsetTop: 8,   // Optional: Adjust vertical offset
+    offsetLeft: 10,  // Optional: Adjust horizontal offset
+    offsetTop: 370,   // Optional: Adjust vertical offset
   });
 
   return (

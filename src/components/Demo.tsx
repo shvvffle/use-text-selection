@@ -7,7 +7,7 @@ export function Demo() {
   const [isInput, setIsInput] = useState(false);
 
   return (
-    <section className="relative max-w-2xl mx-auto">
+    <section>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold text-gray-800 font-serif">
           Live Demo
