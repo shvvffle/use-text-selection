@@ -10,7 +10,7 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-4">
             <a
-              href="https://github.com/shvvffle"
+              href="https://github.com/shvvffle/use-text-selection"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-600 hover:scale-125"

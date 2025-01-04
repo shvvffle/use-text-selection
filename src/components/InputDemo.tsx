@@ -4,7 +4,7 @@ import { Copy, Share2 } from 'lucide-react';
 
 export function InputDemo() {
   const [text, setText] = useState(
-    'Try selecting some text in this input! A tooltip will appear above your selection.\n\nThis demo showcases the useTextSelection hook in action.'
+    'Try selecting some text in this input!'
   );
 
   const selection = useTextSelection();

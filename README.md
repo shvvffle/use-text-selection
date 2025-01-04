@@ -1,6 +1,6 @@
 # useTextSelection
 
-A React hook for creating elegant text selection interactions, similar to Medium's selection experience.
+A React hook for creating elegant text selection interactions in textareas and input fields, similar to Medium's selection experience.
 
 ## Features
 
