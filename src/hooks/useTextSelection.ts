@@ -5,7 +5,7 @@ interface Position {
   top: number;
 }
 
-interface TextSelection {
+export interface TextSelection {
   selectedText: string | null;
   position: Position | null;
   selectionStart: number | null;

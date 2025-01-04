@@ -1,3 +1,5 @@
+import React from 'react';
+
 export function Hero() {
   return (
     <header className="bg-white border-b border-gray-100">

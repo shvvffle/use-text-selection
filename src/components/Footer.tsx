@@ -1,3 +1,4 @@
+import React from 'react';
 import { Github, Globe } from 'lucide-react';
 
 export function Footer() {
