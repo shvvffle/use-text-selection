@@ -17,12 +17,16 @@ function MyComponent() {
   });
 
   return (
-    <div className="relative">
-      <textarea className="w-full p-4" />
+    <div className="relative w-full min-h-[200px]">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="w-full h-full min-h-[200px] p-4"
+        placeholder="Try selecting some text..."
+      />
       {selection.isSelected && selection.position && (
         <div
           style={{
-            position: 'absolute',
             top: selection.position.top,
             left: selection.position.left
           }}

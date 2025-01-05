@@ -10,11 +10,11 @@ export function TextAreaDemo() {
   const selection = useTextSelection();
 
   return (
-      <div className="relative">
+      <div className="relative w-full min-h-[200px]">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="w-full h-40 p-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none"
+          className="w-full h-full min-h-[200px] p-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none"
           placeholder="Try selecting some text..."
         />
         <SelectionTooltip selection={selection} />

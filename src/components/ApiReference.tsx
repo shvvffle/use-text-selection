@@ -19,13 +19,13 @@ export function ApiReference() {
             <code className="bg-gray-100 px-2 py-1 rounded">
               offsetLeft?: number
             </code>{' '}
-            - Horizontal offset for tooltip positioning (default: 10)
+            - Horizontal offset for tooltip positioning (default: 2)
           </li>
           <li>
             <code className="bg-gray-100 px-2 py-1 rounded">
               offsetTop?: number
             </code>{' '}
-            - Vertical offset for tooltip positioning (default: 370)
+            - Vertical offset for tooltip positioning (default: 8)
           </li>
         </ul>
 

@@ -18,23 +18,25 @@ import { useTextSelection } from 'use-text-selection';
 
 function MyComponent() {
   const selection = useTextSelection({
-    offsetLeft: 10,  // Optional: Adjust horizontal offset
-    offsetTop: 370,   // Optional: Adjust vertical offset
+    offsetLeft: 2,  // Optional: Adjust horizontal offset
+    offsetTop: 8,   // Optional: Adjust vertical offset
   });
 
   return (
-    <div className="relative">
-      <textarea className="w-full p-4" />
+    <div className="relative w-full min-h-[200px]">
+      <textarea
+        value={text}
+        className="w-full h-full min-h-[200px] p-4"
+        placeholder="Try selecting some text..."
+      />
       {selection.isSelected && selection.position && (
         <div
           style={{
-            position: 'fixed',
             top: selection.position.top,
-            left: selection.position.left,
-            transform: 'translateX(-50%)',
+            left: selection.position.left
           }}
         >
-          Selection Menu
+          Your tooltip content
         </div>
       )}
     </div>
@@ -47,8 +49,8 @@ function MyComponent() {
 ### Options
 
 - `onSelectionChange?: (selection: TextSelection) => void` - Callback when selection changes
-- `offsetLeft?: number` - Horizontal offset for the tooltip (default: 35)
-- `offsetTop?: number` - Vertical offset for the tooltip (default: 50)
+- `offsetLeft?: number` - Horizontal offset for the tooltip (default: 2)
+- `offsetTop?: number` - Vertical offset for the tooltip (default: 8)
 
 ### Return Value
 

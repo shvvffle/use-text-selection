@@ -48,10 +48,15 @@ const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
       element: HTMLTextAreaElement | HTMLInputElement,
       selectionStart: number,
       selectionEnd: number
-    ): Position => {
+    ): Position | null => {
+      const elementRect = element.getBoundingClientRect();
+      
+      // Create measurement div
       const div = document.createElement('div');
       const styles = window.getComputedStyle(element);
-      const copyStyles = [
+      
+      // Copy styles to ensure text layout matches
+      [
         'font',
         'letterSpacing',
         'lineHeight',
@@ -64,62 +69,42 @@ const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
         'padding',
         'border',
         'boxSizing',
-      ];
-
-      copyStyles.forEach((style) => {
+      ].forEach((style) => {
         div.style[style as any] = styles[style as any];
       });
 
+      // Position the div
       div.style.position = 'absolute';
+      div.style.top = '0';
+      div.style.left = '0';
       div.style.visibility = 'hidden';
       div.style.whiteSpace = 'pre-wrap';
-      div.style.width = `${element.offsetWidth}px`;
-      div.style.height = `${element.offsetHeight}px`;
-      div.style.overflowY = 'auto';
-      div.scrollTop = element.scrollTop;
+      div.style.width = `${elementRect.width}px`;
+      div.style.height = 'auto';
 
+      // Add text content
       const beforeText = element.value.substring(0, selectionStart);
-      const selectedText = element.value.substring(
-        selectionStart,
-        selectionEnd
-      );
+      const selectedText = element.value.substring(selectionStart, selectionEnd);
 
       div.textContent = beforeText;
-      const startMarker = document.createElement('span');
-      startMarker.textContent = selectedText || '.';
-      div.appendChild(startMarker);
+      const span = document.createElement('span');
+      span.textContent = selectedText;
+      div.appendChild(span);
 
-      document.body.appendChild(div);
+      // Add to DOM temporarily and measure
+      element.parentElement?.appendChild(div);
+      const spanRect = span.getBoundingClientRect();
+      const spanTop = spanRect.top - elementRect.top + element.scrollTop;
+      const spanLeft = spanRect.left - elementRect.left;
+      element.parentElement?.removeChild(div);
 
-      const elementRect = element.getBoundingClientRect();
-      const markerRect = startMarker.getBoundingClientRect();
-      const divRect = div.getBoundingClientRect();
-
-      document.body.removeChild(div);
-
-      const left =
-        elementRect.left +
-        (markerRect.left - divRect.left) +
-        markerRect.width / 2;
-      const relativeTop = markerRect.top - divRect.top;
-      const visibleTop = elementRect.top;
-      const visibleHeight = element.clientHeight;
-      const visibleBottom = visibleTop + visibleHeight;
-
-      let top = visibleTop + relativeTop - element.scrollTop;
-
-      if (top < visibleTop) {
-        top = visibleTop + 10;
-      } else if (top > visibleBottom) {
-        top = visibleBottom - 10;
-      }
-
+      // Calculate position relative to textarea
       return {
-        left: left + window.scrollX - (options?.offsetLeft ?? 10),
-        top: top + window.scrollY - (options?.offsetTop ?? 370),
+        left: spanLeft + spanRect.width / 2 - (options?.offsetLeft ?? 2),
+        top: spanTop - (options?.offsetTop ?? 8),
       };
     },
-    []
+    [options?.offsetLeft, options?.offsetTop]
   );
 
   const clearSelection = useCallback(() => {
@@ -156,9 +141,7 @@ const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
       return;
     }
 
-    const inputElement = activeElement as
-      | HTMLInputElement
-      | HTMLTextAreaElement;
+    const inputElement = activeElement as HTMLInputElement | HTMLTextAreaElement;
     const start = inputElement.selectionStart;
     const end = inputElement.selectionEnd;
 
@@ -170,7 +153,11 @@ const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
     const selectedText = inputElement.value.substring(start, end);
     const position = getCaretPosition(inputElement, start, end);
 
-    // Store the current selection
+    if (!position) {
+      clearSelection();
+      return;
+    }
+
     selectionRef.current = {
       start,
       end,
@@ -196,45 +183,46 @@ const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
   }, [updateSelection]);
 
   const handleScroll = useCallback(() => {
-    setSelection((prev) => ({ ...prev, position: null }));
-  }, []);
+    if (scrollTimeoutRef.current !== null) {
+      window.clearTimeout(scrollTimeoutRef.current);
+    }
+
+    setSelection((prev) => ({
+      ...prev,
+      position: null,
+    }));
+
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      scrollTimeoutRef.current = null;
+      if (selectionRef.current.text) {
+        updateSelection();
+      }
+    }, 100);
+  }, [updateSelection]);
+
+  const handleResize = useCallback(() => {
+    if (scrollTimeoutRef.current !== null) {
+      window.clearTimeout(scrollTimeoutRef.current);
+    }
+
+    setSelection((prev) => ({
+      ...prev,
+      position: null,
+    }));
+
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      scrollTimeoutRef.current = null;
+      if (selectionRef.current.text) {
+        updateSelection();
+      }
+    }, 100);
+  }, [updateSelection]);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!selectionRef.current.element || !selectionRef.current.text) return;
-
-      const element = selectionRef.current.element;
-      if (
-        !(
-          element instanceof HTMLTextAreaElement ||
-          element instanceof HTMLInputElement
-        )
-      )
-        return;
-
-      const rect = element.getBoundingClientRect();
-      const isHovering =
-        e.clientX >= rect.left &&
-        e.clientX <= rect.right &&
-        e.clientY >= rect.top &&
-        e.clientY <= rect.bottom;
-
-      if (isHovering && element === document.activeElement) {
-        const currentText = element.value.substring(
-          selectionRef.current.start!,
-          selectionRef.current.end!
-        );
-
-        if (currentText === selectionRef.current.text) {
-          updateSelection();
-        }
-      }
-    };
-
     document.addEventListener('selectionchange', handleSelection);
     document.addEventListener('mousedown', clearSelection);
     document.addEventListener('scroll', handleScroll, true);
-    document.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('resize', handleResize);
 
     return () => {
       if (scrollTimeoutRef.current !== null) {
@@ -243,9 +231,9 @@ const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
       document.removeEventListener('selectionchange', handleSelection);
       document.removeEventListener('mousedown', clearSelection);
       document.removeEventListener('scroll', handleScroll, true);
-      document.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [handleSelection, clearSelection, handleScroll, updateSelection]);
+  }, [handleSelection, clearSelection, handleScroll, handleResize]);
 
   return selection;
 };

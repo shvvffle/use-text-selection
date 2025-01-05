@@ -10,7 +10,7 @@ export function InputDemo() {
   const selection = useTextSelection();
 
   return (
-      <div className="relative">
+      <div className="relative w-full min-h-[20px]">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
