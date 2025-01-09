@@ -1,241 +1,247 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-interface Position {
-  left: number;
-  top: number;
-}
+type Position = {
+    left: number;
+    top: number;
+};
 
-export interface TextSelection {
-  selectedText: string | null;
-  position: Position | null;
-  selectionStart: number | null;
-  selectionEnd: number | null;
-  isSelected: boolean;
-  element: HTMLElement | null;
-}
+type TextSelection = {
+    selectedText: string | null;
+    position: Position | null;
+    selectionStart: number | null;
+    selectionEnd: number | null;
+    isSelected: boolean;
+    element: HTMLElement | null;
+};
 
-interface UseTextSelectionOptions {
-  onSelectionChange?: (selection: TextSelection) => void;
-  offsetLeft?: number;
-  offsetTop?: number;
-}
+type UseTextSelectionOptions = {
+    onSelectionChange?: (selection: TextSelection) => void;
+    offsetLeft?: number;
+    offsetTop?: number;
+    ref?: React.RefObject<HTMLElement>;
+};
 
 const useTextSelection = (options?: UseTextSelectionOptions): TextSelection => {
-  const [selection, setSelection] = useState<TextSelection>({
-    selectedText: null,
-    position: null,
-    selectionStart: null,
-    selectionEnd: null,
-    isSelected: false,
-    element: null,
-  });
+    const [selection, setSelection] = useState<TextSelection>({
+        selectedText: null,
+        position: null,
+        selectionStart: null,
+        selectionEnd: null,
+        isSelected: false,
+        element: null
+    });
 
-  const scrollTimeoutRef = useRef<number | null>(null);
-  const selectionRef = useRef<{
-    start: number | null;
-    end: number | null;
-    text: string | null;
-    element: HTMLElement | null;
-  }>({
-    start: null,
-    end: null,
-    text: null,
-    element: null,
-  });
+    const scrollTimeoutRef = useRef<number | null>(null);
+    const selectionRef = useRef<{
+        start: number | null;
+        end: number | null;
+        text: string | null;
+        element: HTMLElement | null;
+    }>({
+        start: null,
+        end: null,
+        text: null,
+        element: null
+    });
 
-  const getCaretPosition = useCallback(
-    (
-      element: HTMLTextAreaElement | HTMLInputElement,
-      selectionStart: number,
-      selectionEnd: number
-    ): Position | null => {
-      const elementRect = element.getBoundingClientRect();
-      
-      // Create measurement div
-      const div = document.createElement('div');
-      const styles = window.getComputedStyle(element);
-      
-      // Copy styles to ensure text layout matches
-      [
-        'font',
-        'letterSpacing',
-        'lineHeight',
-        'textTransform',
-        'wordSpacing',
-        'textIndent',
-        'whiteSpace',
-        'wordBreak',
-        'overflowWrap',
-        'padding',
-        'border',
-        'boxSizing',
-      ].forEach((style) => {
-        div.style[style as any] = styles[style as any];
-      });
+    const getCaretPosition = useCallback(
+        (
+            element: HTMLTextAreaElement | HTMLInputElement,
+            selectionStart: number,
+            selectionEnd: number
+        ): Position | null => {
+            const elementRect = element.getBoundingClientRect();
 
-      // Position the div
-      div.style.position = 'absolute';
-      div.style.top = '0';
-      div.style.left = '0';
-      div.style.visibility = 'hidden';
-      div.style.whiteSpace = 'pre-wrap';
-      div.style.width = `${elementRect.width}px`;
-      div.style.height = 'auto';
+            // Create measurement div
+            const div = document.createElement('div');
+            const styles = window.getComputedStyle(element);
 
-      // Add text content
-      const beforeText = element.value.substring(0, selectionStart);
-      const selectedText = element.value.substring(selectionStart, selectionEnd);
+            // Copy styles to ensure text layout matches
+            [
+                'font-family',
+                'font-size',
+                'font-style',
+                'font-weight',
+                'font-variant',
+                'font-feature-settings',
+                'letterSpacing',
+                'lineHeight',
+                'textTransform',
+                'wordSpacing',
+                'textIndent',
+                'whiteSpace',
+                'wordBreak',
+                'overflowWrap',
+                'padding',
+                'border',
+                'boxSizing'
+            ].forEach((style) => {
+                div.style[style as any] = styles[style as any];
+            });
 
-      div.textContent = beforeText;
-      const span = document.createElement('span');
-      span.textContent = selectedText;
-      div.appendChild(span);
+            // Position the div
+            div.style.position = 'absolute';
+            div.style.top = `-${element.scrollTop}px`; // Account for scroll position
+            div.style.left = '0';
+            div.style.visibility = 'hidden';
+            div.style.whiteSpace = 'pre-wrap';
+            div.style.width = `${elementRect.width}px`;
+            div.style.height = 'auto';
 
-      // Add to DOM temporarily and measure
-      element.parentElement?.appendChild(div);
-      const spanRect = span.getBoundingClientRect();
-      const spanTop = spanRect.top - elementRect.top + element.scrollTop;
-      const spanLeft = spanRect.left - elementRect.left;
-      element.parentElement?.removeChild(div);
+            // Add text content
+            const beforeText = element.value.substring(0, selectionStart);
+            const selectedText = element.value.substring(selectionStart, selectionEnd);
 
-      // Calculate position relative to textarea
-      return {
-        left: spanLeft + spanRect.width / 2 - (options?.offsetLeft ?? 2),
-        top: spanTop - (options?.offsetTop ?? 8),
-      };
-    },
-    [options?.offsetLeft, options?.offsetTop]
-  );
+            div.textContent = beforeText;
+            const span = document.createElement('span');
+            span.textContent = selectedText;
+            div.appendChild(span);
 
-  const clearSelection = useCallback(() => {
-    const newSelection: TextSelection = {
-      selectedText: null,
-      position: null,
-      selectionStart: null,
-      selectionEnd: null,
-      isSelected: false,
-      element: null,
-    };
-    setSelection(newSelection);
-    selectionRef.current = {
-      start: null,
-      end: null,
-      text: null,
-      element: null,
-    };
-    options?.onSelectionChange?.(newSelection);
-  }, [options?.onSelectionChange]);
+            // Add to DOM temporarily and measure
+            element.parentElement?.appendChild(div);
+            const spanRect = span.getBoundingClientRect();
+            const spanTop = spanRect.top - elementRect.top;
+            const spanLeft = spanRect.left - elementRect.left;
+            element.parentElement?.removeChild(div);
 
-  const updateSelection = useCallback(() => {
-    const activeElement = document.activeElement as HTMLElement;
-    if (!activeElement) {
-      clearSelection();
-      return;
-    }
+            // Check if tooltip would be outside textarea bounds
+            if (
+                spanLeft < 0 ||
+                spanLeft > elementRect.width ||
+                spanTop < 0 ||
+                spanTop > elementRect.height
+            ) {
+                return null; // Return null to hide the tooltip
+            }
 
-    const isInput =
-      activeElement instanceof HTMLInputElement ||
-      activeElement instanceof HTMLTextAreaElement;
-    if (!isInput) {
-      clearSelection();
-      return;
-    }
+            // Calculate position relative to textarea
+            return {
+                left: spanLeft + spanRect.width / 2 - (options?.offsetLeft ?? 2),
+                top: spanTop - (options?.offsetTop ?? 8)
+            };
+        },
+        [options?.offsetLeft, options?.offsetTop]
+    );
 
-    const inputElement = activeElement as HTMLInputElement | HTMLTextAreaElement;
-    const start = inputElement.selectionStart;
-    const end = inputElement.selectionEnd;
+    const clearSelection = useCallback(() => {
+        const newSelection: TextSelection = {
+            selectedText: null,
+            position: null,
+            selectionStart: null,
+            selectionEnd: null,
+            isSelected: false,
+            element: null
+        };
+        setSelection(newSelection);
+        selectionRef.current = {
+            start: null,
+            end: null,
+            text: null,
+            element: null
+        };
+        options?.onSelectionChange?.(newSelection);
+    }, [options?.onSelectionChange]);
 
-    if (start === null || end === null || start === end) {
-      clearSelection();
-      return;
-    }
+    const updateSelection = useCallback(() => {
+        const activeElement = document.activeElement as HTMLElement;
+        if (!activeElement) {
+            clearSelection();
+            return;
+        }
 
-    const selectedText = inputElement.value.substring(start, end);
-    const position = getCaretPosition(inputElement, start, end);
+        const isInput =
+            activeElement instanceof HTMLInputElement ||
+            activeElement instanceof HTMLTextAreaElement;
+        if (!isInput) {
+            clearSelection();
+            return;
+        }
 
-    if (!position) {
-      clearSelection();
-      return;
-    }
+        const inputElement = activeElement as HTMLInputElement | HTMLTextAreaElement;
+        const start = inputElement.selectionStart;
+        const end = inputElement.selectionEnd;
 
-    selectionRef.current = {
-      start,
-      end,
-      text: selectedText,
-      element: activeElement,
-    };
+        if (start === null || end === null || start === end) {
+            clearSelection();
+            return;
+        }
 
-    const newSelection: TextSelection = {
-      selectedText,
-      position,
-      selectionStart: start,
-      selectionEnd: end,
-      isSelected: true,
-      element: activeElement,
-    };
+        const selectedText = inputElement.value.substring(start, end);
+        const position = getCaretPosition(inputElement, start, end);
 
-    setSelection(newSelection);
-    options?.onSelectionChange?.(newSelection);
-  }, [getCaretPosition, clearSelection, options?.onSelectionChange]);
+        selectionRef.current = {
+            start,
+            end,
+            text: selectedText,
+            element: activeElement
+        };
 
-  const handleSelection = useCallback(() => {
-    requestAnimationFrame(updateSelection);
-  }, [updateSelection]);
+        const newSelection: TextSelection = {
+            selectedText,
+            position,
+            selectionStart: start,
+            selectionEnd: end,
+            isSelected: true,
+            element: activeElement
+        };
 
-  const handleScroll = useCallback(() => {
-    if (scrollTimeoutRef.current !== null) {
-      window.clearTimeout(scrollTimeoutRef.current);
-    }
+        setSelection(newSelection);
+        options?.onSelectionChange?.(newSelection);
+    }, [getCaretPosition, clearSelection, options?.onSelectionChange]);
 
-    setSelection((prev) => ({
-      ...prev,
-      position: null,
-    }));
+    const handleSelection = useCallback(() => {
+        requestAnimationFrame(updateSelection);
+    }, [updateSelection]);
 
-    scrollTimeoutRef.current = window.setTimeout(() => {
-      scrollTimeoutRef.current = null;
-      if (selectionRef.current.text) {
-        updateSelection();
-      }
-    }, 100);
-  }, [updateSelection]);
+    const handleScroll = useCallback(() => {
+        if (scrollTimeoutRef.current !== null) {
+            window.clearTimeout(scrollTimeoutRef.current);
+        }
 
-  const handleResize = useCallback(() => {
-    if (scrollTimeoutRef.current !== null) {
-      window.clearTimeout(scrollTimeoutRef.current);
-    }
+        if (selectionRef.current.text) {
+            updateSelection();
+        }
+    }, [updateSelection]);
 
-    setSelection((prev) => ({
-      ...prev,
-      position: null,
-    }));
+    const handleResize = useCallback(() => {
+        if (scrollTimeoutRef.current !== null) {
+            window.clearTimeout(scrollTimeoutRef.current);
+        }
 
-    scrollTimeoutRef.current = window.setTimeout(() => {
-      scrollTimeoutRef.current = null;
-      if (selectionRef.current.text) {
-        updateSelection();
-      }
-    }, 100);
-  }, [updateSelection]);
+        if (selectionRef.current.text) {
+            updateSelection();
+        }
+    }, [updateSelection]);
 
-  useEffect(() => {
-    document.addEventListener('selectionchange', handleSelection);
-    document.addEventListener('mousedown', clearSelection);
-    document.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('resize', handleResize);
+    const handleMouseDown = useCallback(
+        (event: MouseEvent) => {
+            // Check if the click is inside the container using the ref
+            if (options?.ref?.current?.contains(event.target as Node)) {
+                return;
+            }
+            clearSelection();
+        },
+        [clearSelection, options?.ref]
+    );
 
-    return () => {
-      if (scrollTimeoutRef.current !== null) {
-        window.clearTimeout(scrollTimeoutRef.current);
-      }
-      document.removeEventListener('selectionchange', handleSelection);
-      document.removeEventListener('mousedown', clearSelection);
-      document.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [handleSelection, clearSelection, handleScroll, handleResize]);
+    useEffect(() => {
+        document.addEventListener('selectionchange', handleSelection);
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('scroll', handleScroll, true);
+        window.addEventListener('resize', handleResize);
 
-  return selection;
+        return () => {
+            if (scrollTimeoutRef.current !== null) {
+                window.clearTimeout(scrollTimeoutRef.current);
+            }
+            document.removeEventListener('selectionchange', handleSelection);
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('scroll', handleScroll, true);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [handleSelection, handleMouseDown, handleScroll, handleResize]);
+
+    return selection;
 };
 
 export default useTextSelection;
